@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agendamento de Salas</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <div class="container">
+        <h1>Sistema de Agendamento</h1>
+        
+        <div class="layout-colunas">
+            <div class="coluna">
+                <section id="salas-section">
+                    <h2>Salas Disponíveis</h2>
+                    <ul id="lista-salas">
+                        <li>Carregando salas...</li>
+                    </ul>
+                </section>
+            </div>
+            
+            <div class="coluna">
+                <section id="agendamento-section">
+                    <h2 id="sala-selecionada-titulo">Selecione uma sala para começar</h2>
+                    
+                    <div id="agendamentos-container">
+                        <h3>Horários Agendados</h3>
+                        <ul id="lista-agendamentos">
+                            </ul>
+                    </div>
+                    
+                    <div id="novo-agendamento-container" style="display: none;">
+                        <h3>Novo Agendamento</h3>
+                        <form id="form-novo-agendamento">
+                            <input type="hidden" id="sala_id_hidden">
+                            
+                            <label for="responsavel">Seu Nome:</label>
+                            <input type="text" id="responsavel" required>
+                            
+                            <label for="data_inicio">Início:</label>
+                            <input type="datetime-local" id="data_inicio" required>
+                            
+                            <label for="data_fim">Fim:</label>
+                            <input type="datetime-local" id="data_fim" required>
+                            
+                            <button type="submit">Agendar</button>
+                            <button type="button" id="botao-cancelar-edicao" style="display: none;">Cancelar Edição</button>
+                            <div id="painel-mensagens"></div>
+                        </form>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
