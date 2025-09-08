@@ -33,6 +33,35 @@ function formatarDataHora(dataISO) {
     return `${dia}/${mes}/${ano}, ${hora}:${minuto}`;
 }
 
+// Normaliza texto removendo acentos/diacríticos e padronizando caixa
+function normalizeText(s) {
+    return (s || '')
+        .toString()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .trim();
+}
+
+// Verifica se o nome da sala casa com todos os termos do filtro (multi-termo)
+function matchesFilter(name, filter) {
+    const normName = normalizeText(name);
+    const terms = normalizeText(filter).split(/\s+/).filter(Boolean);
+    if (terms.length === 0) return true;
+    return terms.every(t => normName.includes(t));
+}
+
+// Debounce simples para reduzir rerenders durante digitação
+function debounce(fn, delay = 180) {
+    let t;
+    return (...args) => {
+        clearTimeout(t);
+        t = setTimeout(() => fn(...args), delay);
+    };
+}
+
+let renderSalasDebounced = null;
+
 function mostrarMensagem(mensagem, tipo) {
     // Painel legado (compatibilidade)
     if (painelMensagens) {
@@ -54,14 +83,14 @@ function mostrarMensagem(mensagem, tipo) {
 
 function renderSalas(filtro = '') {
     if (!Array.isArray(salasCache)) return;
-    const termo = filtro.trim().toLowerCase();
+    const termoBruto = filtro == null ? '' : String(filtro);
     listaSalasElement.innerHTML = '';
 
-    const salasFiltradas = salasCache.filter(s => !termo || s.nome.toLowerCase().includes(termo));
+    const salasFiltradas = salasCache.filter(s => matchesFilter(s.nome, termoBruto));
 
     if (salasFiltradas.length === 0) {
         const vazio = document.createElement('li');
-        vazio.textContent = termo ? 'Nenhuma sala encontrada.' : 'Sem salas disponíveis.';
+        vazio.textContent = normalizeText(termoBruto).length > 0 ? 'Nenhuma sala encontrada.' : 'Sem salas disponíveis.';
         listaSalasElement.appendChild(vazio);
         return;
     }
@@ -233,5 +262,20 @@ formAgendamento.addEventListener('submit', async (evento) => {
 });
 
 botaoCancelarEdicao.addEventListener('click', cancelarEdicao);
+
+// Filtragem de salas (registrar listeners apenas uma vez)
+if (buscaSalasInput) {
+    renderSalasDebounced = debounce(renderSalas, 180);
+    buscaSalasInput.addEventListener('input', (e) => {
+        renderSalasDebounced(e.target.value);
+    });
+    buscaSalasInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            buscaSalasInput.value = '';
+            renderSalas('');
+            e.preventDefault();
+        }
+    });
+}
 
 carregarSalas();
