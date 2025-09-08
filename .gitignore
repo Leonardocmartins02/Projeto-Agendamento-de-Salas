@@ -7,3 +7,5 @@ bash: instance/: É um diretório
 bash: __pycache__/: Arquivo ou diretório inexistente
 *.pyc: comando não encontrado
 (venv) leonardo@leo:~/projeto_fi
+
+flush_db.py
