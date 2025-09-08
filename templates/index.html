@@ -8,52 +8,71 @@
 </head>
 <body>
 
-    <div class="container">
-        <h1>Sistema de Agendamento</h1>
-        
-        <div class="layout-colunas">
-            <div class="coluna">
-                <section id="salas-section">
-                    <h2>Salas Disponíveis</h2>
-                    <ul id="lista-salas">
-                        <li>Carregando salas...</li>
-                    </ul>
-                </section>
-            </div>
-            
-            <div class="coluna">
-                <section id="agendamento-section">
-                    <h2 id="sala-selecionada-titulo">Selecione uma sala para começar</h2>
-                    
-                    <div id="agendamentos-container">
-                        <h3>Horários Agendados</h3>
-                        <ul id="lista-agendamentos">
-                            </ul>
-                    </div>
-                    
-                    <div id="novo-agendamento-container" style="display: none;">
-                        <h3>Novo Agendamento</h3>
-                        <form id="form-novo-agendamento">
-                            <input type="hidden" id="sala_id_hidden">
-                            
-                            <label for="responsavel">Seu Nome:</label>
-                            <input type="text" id="responsavel" required>
-                            
-                            <label for="data_inicio">Início:</label>
-                            <input type="datetime-local" id="data_inicio" required>
-                            
-                            <label for="data_fim">Fim:</label>
-                            <input type="datetime-local" id="data_fim" required>
-                            
-                            <button type="submit">Agendar</button>
-                            <button type="button" id="botao-cancelar-edicao" style="display: none;">Cancelar Edição</button>
-                            <div id="painel-mensagens"></div>
-                        </form>
-                    </div>
-                </section>
+    <header class="site-header" role="banner">
+        <div class="container">
+            <h1 class="site-title">Sistema de Agendamento</h1>
+            <p class="site-subtitle">Reserve salas de forma simples, rápida e acessível</p>
+        </div>
+    </header>
+
+    <main role="main">
+        <div class="container">
+            <div class="layout-colunas layout-grid">
+                <div class="coluna">
+                    <section id="salas-section" aria-labelledby="titulo-salas">
+                        <h2 id="titulo-salas">Salas Disponíveis</h2>
+                        <div class="field">
+                            <label class="visually-hidden" for="busca-salas">Buscar sala</label>
+                            <input id="busca-salas" type="text" class="field__control" placeholder="Buscar sala por nome..." autocomplete="off" inputmode="search">
+                        </div>
+                        <ul id="lista-salas" class="list" aria-live="polite">
+                            <li>Carregando salas...</li>
+                        </ul>
+                    </section>
+                </div>
+                
+                <div class="coluna">
+                    <section id="agendamento-section" aria-labelledby="sala-selecionada-titulo">
+                        <h2 id="sala-selecionada-titulo">Selecione uma sala para começar</h2>
+                        
+                        <div id="agendamentos-container">
+                            <h3>Horários Agendados</h3>
+                            <ul id="lista-agendamentos" class="list" aria-live="polite">
+                                </ul>
+                        </div>
+                        
+                        <div id="novo-agendamento-container" style="display: none;">
+                            <h3>Novo Agendamento</h3>
+                            <form id="form-novo-agendamento" novalidate>
+                                <input type="hidden" id="sala_id_hidden">
+                                
+                                <label for="responsavel">Seu Nome:</label>
+                                <input type="text" id="responsavel" required autocomplete="name">
+                                
+                                <label for="data_inicio">Início:</label>
+                                <input type="datetime-local" id="data_inicio" required>
+                                
+                                <label for="data_fim">Fim:</label>
+                                <input type="datetime-local" id="data_fim" required>
+                                
+                                <button type="submit">Agendar</button>
+                                <button type="button" id="botao-cancelar-edicao" style="display: none;">Cancelar Edição</button>
+                                <div id="painel-mensagens" role="status" aria-live="polite"></div>
+                            </form>
+                        </div>
+                    </section>
+                </div>
             </div>
         </div>
-    </div>
+    </main>
+
+    <footer class="site-footer" role="contentinfo">
+        <div class="container">
+            <small>© Universidade — Sistema de Agendamento</small>
+        </div>
+    </footer>
+
+    <div id="toast-region" class="toast-region" aria-live="polite" aria-atomic="true"></div>
 
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
