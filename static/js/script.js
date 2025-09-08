@@ -13,10 +13,13 @@ const dataFimInput = document.getElementById('data_fim');
 const painelMensagens = document.getElementById('painel-mensagens');
 const botaoSubmit = formAgendamento.querySelector('button[type="submit"]');
 const botaoCancelarEdicao = document.getElementById('botao-cancelar-edicao');
+const buscaSalasInput = document.getElementById('busca-salas');
+const toastRegion = document.getElementById('toast-region');
 
 // --- Variáveis de Estado ---
 let salaSelecionadaGlobal = null;
 let agendamentoEmEdicaoId = null;
+let salasCache = [];
 
 // --- Funções ---
 
@@ -31,22 +34,77 @@ function formatarDataHora(dataISO) {
 }
 
 function mostrarMensagem(mensagem, tipo) {
-    painelMensagens.textContent = mensagem;
-    painelMensagens.className = tipo === 'sucesso' ? 'mensagem-sucesso' : 'mensagem-erro';
-    setTimeout(() => { painelMensagens.className = ''; }, 4000);
+    // Painel legado (compatibilidade)
+    if (painelMensagens) {
+        painelMensagens.textContent = mensagem;
+        painelMensagens.className = tipo === 'sucesso' ? 'mensagem-sucesso' : 'mensagem-erro';
+        setTimeout(() => { painelMensagens.className = ''; }, 4000);
+    }
+
+    // Toasts modernos
+    if (toastRegion) {
+        const toast = document.createElement('div');
+        toast.className = `toast ${tipo === 'sucesso' ? 'toast--success' : 'toast--error'}`;
+        toast.setAttribute('role', 'status');
+        toast.textContent = mensagem;
+        toastRegion.appendChild(toast);
+        setTimeout(() => { toast.remove(); }, 4000);
+    }
+}
+
+function renderSalas(filtro = '') {
+    if (!Array.isArray(salasCache)) return;
+    const termo = filtro.trim().toLowerCase();
+    listaSalasElement.innerHTML = '';
+
+    const salasFiltradas = salasCache.filter(s => !termo || s.nome.toLowerCase().includes(termo));
+
+    if (salasFiltradas.length === 0) {
+        const vazio = document.createElement('li');
+        vazio.textContent = termo ? 'Nenhuma sala encontrada.' : 'Sem salas disponíveis.';
+        listaSalasElement.appendChild(vazio);
+        return;
+    }
+
+    salasFiltradas.forEach(sala => {
+        const itemDaLista = document.createElement('li');
+        itemDaLista.className = 'list__item';
+        itemDaLista.dataset.id = String(sala.id);
+        itemDaLista.tabIndex = 0;
+        itemDaLista.setAttribute('aria-selected', salaSelecionadaGlobal && salaSelecionadaGlobal.id === sala.id ? 'true' : 'false');
+
+        const capacidade = document.createElement('span');
+        capacidade.className = 'badge';
+        capacidade.textContent = `Capacidade: ${sala.capacidade}`;
+
+        const nome = document.createElement('span');
+        nome.textContent = sala.nome + ' ';
+
+        itemDaLista.appendChild(nome);
+        itemDaLista.appendChild(capacidade);
+
+        itemDaLista.addEventListener('click', () => selecionarSala(sala));
+        itemDaLista.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                selecionarSala(sala);
+            }
+        });
+
+        // Destaque se já selecionada
+        if (salaSelecionadaGlobal && salaSelecionadaGlobal.id === sala.id) {
+            itemDaLista.classList.add('is-selected');
+        }
+
+        listaSalasElement.appendChild(itemDaLista);
+    });
 }
 
 async function carregarSalas() {
     try {
         const response = await fetch(`${API_URL}/salas`);
-        const salas = await response.json();
-        listaSalasElement.innerHTML = '';
-        salas.forEach(sala => {
-            const itemDaLista = document.createElement('li');
-            itemDaLista.textContent = `${sala.nome} (Capacidade: ${sala.capacidade} pessoas)`;
-            itemDaLista.addEventListener('click', () => selecionarSala(sala));
-            listaSalasElement.appendChild(itemDaLista);
-        });
+        salasCache = await response.json();
+        renderSalas(buscaSalasInput ? buscaSalasInput.value : '');
     } catch (error) {
         mostrarMensagem('Falha ao carregar salas. Verifique se o backend está rodando.', 'erro');
     }
@@ -58,6 +116,20 @@ async function selecionarSala(sala) {
     novoAgendamentoContainer.style.display = 'block';
     salaIdHiddenInput.value = sala.id;
     cancelarEdicao();
+
+    // Atualiza destaque na lista de salas
+    if (listaSalasElement) {
+        [...listaSalasElement.children].forEach(li => {
+            if (!(li instanceof HTMLElement)) return;
+            const isAtiva = li.dataset && Number(li.dataset.id) === sala.id;
+            li.classList.toggle('is-selected', Boolean(isAtiva));
+            if (isAtiva) {
+                li.setAttribute('aria-selected', 'true');
+            } else {
+                li.setAttribute('aria-selected', 'false');
+            }
+        });
+    }
 
     try {
         const response = await fetch(`${API_URL}/salas/${sala.id}/agendamentos`);
@@ -74,7 +146,7 @@ async function selecionarSala(sala) {
                 textoAgendamento.textContent = `Responsável: ${ag.responsavel} | De: ${inicio} | Até: ${fim}`;
                 
                 const botaoDeletar = document.createElement('button');
-                botaoDeletar.textContent = 'X';
+                botaoDeletar.textContent = 'Excluir';
                 botaoDeletar.className = 'botao-deletar';
                 botaoDeletar.addEventListener('click', () => deletarAgendamento(ag.id, sala));
 
@@ -113,6 +185,8 @@ function cancelarEdicao() {
 
 async function deletarAgendamento(agendamentoId, salaAtual) {
     try {
+        const confirmar = window.confirm('Tem certeza que deseja excluir este agendamento?');
+        if (!confirmar) return;
         const response = await fetch(`${API_URL}/agendamentos/${agendamentoId}`, { method: 'DELETE' });
         if (response.ok) {
             selecionarSala(salaAtual);
