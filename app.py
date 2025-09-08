@@ -97,7 +97,7 @@ if __name__ == '__main__':
             print("Criando salas iniciais da universidade...")
             sala1 = Sala(nome='Anfiteatro Principal', capacidade=30)
             sala2 = Sala(nome='Laboratório de Projetos', capacidade=15)
-            sala3 = Sala(nome='Sala de Reunião 2B', capacidade=8)
+            sala3 = Sala(nome='Sala de Reunião', capacidade=8)
             db.session.add_all([sala1, sala2, sala3])
             db.session.commit()
     app.run(debug=True)
