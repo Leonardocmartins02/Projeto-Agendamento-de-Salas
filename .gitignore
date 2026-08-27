@@ -1,11 +1,6 @@
-(venv) leonardo@leo:~/projeto_final$ venv/
+venv/
 instance/
 __pycache__/
 *.pyc
-bash: venv/: É um diretório
-bash: instance/: É um diretório
-bash: __pycache__/: Arquivo ou diretório inexistente
-*.pyc: comando não encontrado
-(venv) leonardo@leo:~/projeto_fi
-
+agendamentos.db
 flush_db.py

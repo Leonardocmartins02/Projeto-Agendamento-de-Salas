@@ -76,9 +76,23 @@ def create_agendamento():
 def update_agendamento(agendamento_id):
     agendamento_para_editar = Agendamento.query.get_or_404(agendamento_id)
     data = request.json
+    data_inicio_obj = datetime.fromisoformat(data['data_inicio'])
+    data_fim_obj = datetime.fromisoformat(data['data_fim'])
+    if data_fim_obj <= data_inicio_obj:
+        return jsonify({"mensagem": "Erro: O horário de término deve ser posterior ao horário de início."}), 400
+    sala_id = data.get('sala_id', agendamento_para_editar.sala_id)
+    agendamento_conflitante = Agendamento.query.filter(
+        Agendamento.id != agendamento_id,
+        Agendamento.sala_id == sala_id,
+        Agendamento.data_inicio < data_fim_obj,
+        Agendamento.data_fim > data_inicio_obj
+    ).first()
+    if agendamento_conflitante:
+        return jsonify({"mensagem": "Horário indisponível! Já existe um agendamento para esta sala que conflita com este período."}), 409
+    agendamento_para_editar.sala_id = sala_id
     agendamento_para_editar.responsavel = data['responsavel']
-    agendamento_para_editar.data_inicio = datetime.fromisoformat(data['data_inicio'])
-    agendamento_para_editar.data_fim = datetime.fromisoformat(data['data_fim'])
+    agendamento_para_editar.data_inicio = data_inicio_obj
+    agendamento_para_editar.data_fim = data_fim_obj
     db.session.commit()
     return jsonify(agendamento_para_editar.to_json())
 
