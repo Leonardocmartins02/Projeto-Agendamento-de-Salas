@@ -71,7 +71,8 @@ Passo a passo:
      - venv\Scripts\Activate.ps1
 
 2) Instalar dependências
-   - pip install Flask==2.* Flask-SQLAlchemy==3.* Flask-Cors==4.*
+   - pip install -r requirements.txt
+   - Para rodar os testes também: pip install -r requirements-dev.txt
 
 3) Rodar o servidor (modo desenvolvimento)
    - python app.py
@@ -82,6 +83,24 @@ Passo a passo:
 Observações:
 - Ao iniciar, o app cria automaticamente o banco SQLite `agendamentos.db` e popula 3 salas exemplo (ver [app.py](cci:7://file:///home/leonardo/projeto_final/app.py:0:0-0:0)).
 - CORS está habilitado para permitir requests do frontend servido pelo Flask.
+
+---
+
+## 🧪 Testes
+
+Testes funcionais (pytest + Flask `test_client`), cada teste roda contra um banco SQLite temporário isolado:
+
+```
+pip install -r requirements-dev.txt
+pytest
+```
+
+Rodar um teste específico:
+```
+pytest tests/test_agendamentos.py::TestCriacao::test_bloqueia_conflito_de_horario
+```
+
+Cobertura atual: criação/edição/exclusão de agendamentos, validação de payload inválido (sem quebrar com 500), conflito de horário em `POST` e `PUT`, e um teste de concorrência (`TestConcorrencia`) que dispara duas criações simultâneas no mesmo horário e garante que só uma vence (regressão para double-booking).
 
 
 ---
